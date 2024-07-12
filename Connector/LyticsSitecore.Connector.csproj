@@ -227,9 +227,10 @@
   <ItemGroup />
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="App_Config\Lytics\Lytics.config" />
+    <None Include="App_Config\include\Lytics.config" />
     <None Include="LyticsSitecore.Connector.nuspec" />
     <None Include="packages.config" />
+    <None Include="README.md" />
     <None Include="Resources\Lytics-Sitecore-Connector.zip" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
