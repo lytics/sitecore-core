@@ -1,0 +1,20 @@
+﻿<?xml version="1.0"?>
+<package>
+	<metadata>
+		<id>LyticsSitecore.Connector</id>
+		<version>1.0.0</version>
+		<title>Lytics Sitecore Connector</title>
+		<authors>Phases.io</authors>
+		<owners>Lytics</owners>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>The Lytics Sitecore Connector integrates Lytics customer data platform with Sitecore, enabling personalized content delivery and enhanced customer experiences. This connector facilitates data synchronization between Lytics and Sitecore, allowing for real-time insights and actions based on customer behavior and preferences.</description>
+		<releaseNotes> Initial release of the Lytics Sitecore Connector. This version includes basic functionality for integrating Lytics with Sitecore.</releaseNotes>
+		<copyright>Copyright 2024 Lytics</copyright>
+		<tags>lytics sitecore connector personalization customer data</tags>
+	</metadata>
+	<files>
+		<file src="bin\Release\LyticsSitecore.Connector.dll" target="lib\net48" />
+		<file src="App_Config/Lytics/Lytics.config" target="content/App_Config/lytics/Lytics.config" />
+		<file src="Resources/Lytics-Sitecore-Connector.zip" target="content/Resources/Lytics-Sitecore-Connector.zip" />
+	</files>
+</package>

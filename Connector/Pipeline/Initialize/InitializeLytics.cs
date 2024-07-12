@@ -72,12 +72,12 @@ namespace LyticsSitecore.Connector.Pipeline.Initialize
             if (RequiredSitecoreItemsMissing())
             {
                 var filepath = "";
-                if (System.Text.RegularExpressions.Regex.IsMatch(Settings.DataFolder, @"^(([a-zA-Z]:\\)|(//)).*")) //if we have an absolute path, rather than relative to the site root
+                if (System.Text.RegularExpressions.Regex.IsMatch(Settings.DataFolder, @"^(([a-zA-Z]:\\)|(//)).*")) 
                     filepath = Settings.DataFolder +
-                               @"\packages\LyticsSitecoreConnector.Lytics.zip";
+                               @"\packages\Lytics-Sitecore-Connector.zip";
                 else
                     filepath = HttpRuntime.AppDomainAppPath + Settings.DataFolder.Substring(1) +
-                               @"\packages\LyticsSitecoreConnector.Lytics.zip";
+                               @"\packages\Lytics-Sitecore-Connector.zip";
                 try
                 {
                     if (File.Exists(filepath))
