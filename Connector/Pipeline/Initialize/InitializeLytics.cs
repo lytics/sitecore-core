@@ -43,7 +43,7 @@ namespace LyticsSitecore.Connector.Pipeline.Initialize
                 ActivateLyticsRules();
             }
             catch (Exception e)
-            { 
+            {
                 Log.Error($"Error when initializing lytics connector {e}.", this);
             }
         }
@@ -72,7 +72,7 @@ namespace LyticsSitecore.Connector.Pipeline.Initialize
             if (RequiredSitecoreItemsMissing())
             {
                 var filepath = "";
-                if (System.Text.RegularExpressions.Regex.IsMatch(Settings.DataFolder, @"^(([a-zA-Z]:\\)|(//)).*")) 
+                if (System.Text.RegularExpressions.Regex.IsMatch(Settings.DataFolder, @"^(([a-zA-Z]:\\)|(//)).*"))
                     filepath = Settings.DataFolder +
                                @"\packages\Lytics-Sitecore-Connector.zip";
                 else
@@ -139,7 +139,7 @@ namespace LyticsSitecore.Connector.Pipeline.Initialize
             Database db = Factory.GetDatabase("master", false);
             if (db != null)
             {
-                return typeof(Constants)
+                return typeof(Constants.SitecoreIds)
                     .GetFields()
                     .Any(f => db.GetItem(f.GetValue(null).ToString()) == null);
             }
