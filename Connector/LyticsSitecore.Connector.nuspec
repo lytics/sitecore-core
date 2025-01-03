@@ -2,7 +2,7 @@
 <package>
 	<metadata>
 		<id>LyticsSitecore.Connector</id>
-		<version>1.0.0</version>
+		<version>1.1.0</version>
 		<title>Lytics Sitecore Connector</title>
 		<authors>Phases.io</authors>
 		<owners>Lytics</owners>
@@ -10,7 +10,7 @@
 		<license type="expression">MIT</license> 
 		<description>The Lytics Sitecore Connector integrates Lytics customer data platform with Sitecore, enabling personalized content delivery and enhanced customer experiences. This connector facilitates data synchronization between Lytics and Sitecore, allowing for real-time insights and actions based on customer behavior and preferences.</description>
 		<releaseNotes> Initial release of the Lytics Sitecore Connector. This version includes basic functionality for integrating Lytics with Sitecore.</releaseNotes>
-		<copyright>Copyright 2024 Lytics</copyright>
+		<copyright>Copyright 2025 Lytics</copyright>
 		<tags>lytics sitecore connector personalization customer data</tags>
 		<readme>README.md</readme>
 	</metadata>
