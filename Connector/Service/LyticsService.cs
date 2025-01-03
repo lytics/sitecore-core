@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using Sitecore.Configuration;
 using Sitecore.Data;
 using Sitecore.Data.Items;
+using Sitecore.Diagnostics;
 using Sitecore.SecurityModel;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -16,7 +17,7 @@ using System.Web;
 
 namespace LyticsSitecore.Connector.Service
 {
-    public class LyticsService:ILyticsService
+    public class LyticsService : ILyticsService
     {
         private Dictionary<string, HashSet<string>> _segmentDef = new Dictionary<string, HashSet<string>>();
         public IEnumerable<ILyticsSegment> GetAllSegments()
@@ -53,7 +54,7 @@ namespace LyticsSitecore.Connector.Service
                 return ret;
             }
             catch (System.Exception)
-            { 
+            {
                 return null;
             }
         }
@@ -72,59 +73,83 @@ namespace LyticsSitecore.Connector.Service
         public void IntegrateLyticsRules()
         {
             Database db = Factory.GetDatabase("master", false);
-            if (db != null)
+            if (db == null)
             {
-                Dictionary<string, ID> populatedSegments = new Dictionary<string, ID>();
-                Item lyticsSegmentFolder = db.GetItem(Constants.SitecoreIds.SegmentRuleFolder);
-                if (lyticsSegmentFolder != null)
+                Log.Error("Failed to get the master database.", this);
+                return;
+            }
+
+            Dictionary<string, ID> populatedSegments = new Dictionary<string, ID>();
+            Item lyticsSegmentFolder = db.GetItem(Constants.SitecoreIds.SegmentRuleFolder);
+
+            if (lyticsSegmentFolder == null)
+            {
+                Log.Error($"Lytics Segment Folder not found at {Constants.SitecoreIds.SegmentRuleFolder}.", this);
+                return;
+            }
+
+            using (new SecurityDisabler())
+            {
+                // Populate existing Sitecore segments into the dictionary
+                foreach (Item scSegment in lyticsSegmentFolder.Children)
                 {
-                    using (new SecurityDisabler())
+                    string segmentId = scSegment[Constants.LyticsSegments.SegmentId];
+                    if (!string.IsNullOrWhiteSpace(segmentId) && !populatedSegments.ContainsKey(segmentId))
                     {
-                        foreach (Item scSegment in lyticsSegmentFolder.Children)
+                        populatedSegments.Add(segmentId, scSegment.ID);
+                    }
+                }
+
+                // Fetch all Lytics segments
+                var segments = GetAllSegments()?.Where(x => !string.IsNullOrWhiteSpace(x.Name)).ToList();
+                if (segments == null || !segments.Any())
+                {
+                    Log.Warn("No Lytics segments found to integrate.", this);
+                    return;
+                }
+
+                // Process each Lytics segment
+                foreach (ILyticsSegment segment in segments)
+                {
+                    Item item;
+                    if (populatedSegments.TryGetValue(segment.Id, out ID existingItemId))
+                    {
+                        item = db.GetItem(existingItemId);
+                        populatedSegments.Remove(segment.Id); // Mark as processed
+                    }
+                    else
+                    {
+                        string name = ItemUtil.ProposeValidItemName(segment.Name, Constants.LyticsSegments.UnknownSegment);
+                        item = lyticsSegmentFolder.Add(name, new TemplateID(new ID(Constants.SitecoreIds.SegmentTemplateId)));
+                    }
+
+                    if (item != null)
+                    {
+                        using (new EditContext(item))
                         {
-                            if (!populatedSegments.ContainsKey(scSegment[Constants.LyticsSegments.SegmentId]))
-                            {
-                                populatedSegments.Add(scSegment[Constants.LyticsSegments.SegmentId], scSegment.ID);
-                            }
+                            item[Constants.LyticsSegments.SegmentId] = segment.Id;
+                            item[Constants.LyticsSegments.SegmentName] = segment.SlugName;
+                            item.Appearance.ReadOnly = true;
                         }
-                        var segments = GetAllSegments();
-                        if (segments != null && segments.Any())
-                        {
-                            foreach (ILyticsSegment segment in GetAllSegments().Where(x => !string.IsNullOrWhiteSpace(x.Name)))
-                            {
-                                Item item;
-                                if (populatedSegments.ContainsKey(segment.Id))
-                                {
-                                    item = db.GetItem(populatedSegments[segment.Id]);
-                                    populatedSegments.Remove(segment.Id);
-                                }
-                                else
-                                {
-                                    string name = ItemUtil.ProposeValidItemName(segment.Name, Constants.LyticsSegments.UnknownSegment);
-                                    item = lyticsSegmentFolder.Add(name, new TemplateID(new ID(Constants.SitecoreIds.SegmentTemplateId)));
-                                }
-                                if (item != null)
-                                {
-                                    using (new EditContext(item))
-                                    {
-                                        item[Constants.LyticsSegments.SegmentId] = segment.Id;
-                                        item[Constants.LyticsSegments.SegmentName] = segment.SlugName;
-                                        item.Appearance.ReadOnly = true;
-                                    }
-                                }
-                            } 
-                        }
-                        if (populatedSegments != null && populatedSegments.Any())
-                        {
-                            foreach (string key in populatedSegments.Keys)
-                            {
-                                db.GetItem(populatedSegments[key]).Delete();
-                            } 
-                        }
-                           
+                    }
+                    else
+                    {
+                        Log.Warn($"Failed to create or update segment: {segment.Name} (ID: {segment.Id}).", this);
+                    }
+                }
+
+                // Remove any remaining Sitecore segments that were not in Lytics
+                foreach (var segmentId in populatedSegments.Keys)
+                {
+                    var item = db.GetItem(populatedSegments[segmentId]);
+                    if (item != null)
+                    {
+                        item.Delete();
+                        Log.Warn($"Removed Sitecore segment with ID: {item.ID} and Name: {item.Name} as it no longer exists in Lytics.", this);
                     }
                 }
             }
         }
+
     }
 }
