@@ -1,6 +1,9 @@
 # Official Lytics Connector for Sitecore
 This is a module that connects to Lytics to provide a hook for real time Lytics segment personalization using the rules engine in Sitecore.
 
+# Installation
+1. Install the nuget package defined [here](https://www.nuget.org/packages/LyticsSitecore.Connector/1.0.0)
+
 # Upgrading from Legacy Version
 
 ## Overwriting Existing Items:
