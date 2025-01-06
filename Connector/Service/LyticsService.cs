@@ -111,41 +111,45 @@ namespace LyticsSitecore.Connector.Service
                 // Process each Lytics segment
                 foreach (ILyticsSegment segment in segments)
                 {
-                    Item item;
+
                     if (populatedSegments.TryGetValue(segment.Id, out ID existingItemId))
                     {
-                        item = db.GetItem(existingItemId);
+                        //item = db.GetItem(existingItemId);
                         populatedSegments.Remove(segment.Id); // Mark as processed
                     }
                     else
                     {
                         string name = ItemUtil.ProposeValidItemName(segment.Name, Constants.LyticsSegments.UnknownSegment);
-                        item = lyticsSegmentFolder.Add(name, new TemplateID(new ID(Constants.SitecoreIds.SegmentTemplateId)));
-                    }
-
-                    if (item != null)
-                    {
-                        using (new EditContext(item))
+                        var item = lyticsSegmentFolder.Add(name, new TemplateID(new ID(Constants.SitecoreIds.SegmentTemplateId)));
+                        if (item != null)
                         {
-                            item[Constants.LyticsSegments.SegmentId] = segment.Id;
-                            item[Constants.LyticsSegments.SegmentName] = segment.SlugName;
-                            item.Appearance.ReadOnly = true;
+                            using (new EditContext(item))
+                            {
+                                item[Constants.LyticsSegments.SegmentId] = segment.Id;
+                                item[Constants.LyticsSegments.SegmentName] = segment.SlugName;
+                                item.Appearance.ReadOnly = true;
+                            }
+                        }
+                        else
+                        {
+                            Log.Warn($"Failed to create or update segment: {segment.Name} (ID: {segment.Id}).", this);
                         }
                     }
-                    else
-                    {
-                        Log.Warn($"Failed to create or update segment: {segment.Name} (ID: {segment.Id}).", this);
-                    }
+
+
                 }
 
                 // Remove any remaining Sitecore segments that were not in Lytics
-                foreach (var segmentId in populatedSegments.Keys)
+                if (populatedSegments != null && populatedSegments.Any())
                 {
-                    var item = db.GetItem(populatedSegments[segmentId]);
-                    if (item != null)
+                    foreach (var segmentId in populatedSegments.Keys)
                     {
-                        item.Delete();
-                        Log.Warn($"Removed Sitecore segment with ID: {item.ID} and Name: {item.Name} as it no longer exists in Lytics.", this);
+                        var item = db.GetItem(populatedSegments[segmentId]);
+                        if (item != null)
+                        {
+                            item.Delete();
+                            Log.Warn($"Removed Sitecore segment with ID: {item.ID} and Name: {item.Name} as it no longer exists in Lytics.", this);
+                        }
                     }
                 }
             }
